@@ -1,0 +1,14 @@
+-- Step 5: Use the model to predict values on new data
+SELECT
+  *,
+  predicted_Correction_by_Initiator
+FROM
+  ML.PREDICT(MODEL `uk-pso-psoux-poc.Log_Reg.logistic_regression_model`,
+    (
+    SELECT
+      `Completed #`,
+      `Length of Service`
+    FROM
+      `your_project_id.your_dataset_id.new_data_table` -- Replace with your new data table
+    )
+  );
