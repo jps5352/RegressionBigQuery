@@ -1,0 +1,39 @@
+-- Step 1: Split data into training and evaluation datasets
+CREATE OR REPLACE TABLE your_project_id.your_dataset_id.train_data AS
+SELECT
+  *
+FROM
+  your_project_id.your_dataset_id.Log_Reg
+WHERE
+  RAND() < 0.8;  -- 80% of the data for training
+
+CREATE OR REPLACE TABLE your_project_id.your_dataset_id.eval_data AS
+SELECT
+  *
+FROM
+  your_project_id.your_dataset_id.Log_Reg
+WHERE
+  RAND() >= 0.8;  -- 20% of the data for evaluation
+
+-- Step 2: Create a logistic regression model
+CREATE OR REPLACE MODEL your_project_id.your_dataset_id.logistic_regression_model
+OPTIONS(model_type='logistic_reg') AS
+SELECT
+  *
+FROM
+  your_project_id.your_dataset_id.train_data
+WHERE
+  TRUE;
+
+-- Step 3: Evaluate the model
+SELECT
+  *
+FROM
+  ML.EVALUATE(MODEL your_project_id.your_dataset_id.logistic_regression_model,
+    (
+    SELECT
+      *
+    FROM
+      your_project_id.your_dataset_id.eval_data
+    )
+  );
