@@ -1,0 +1,67 @@
+-- Step 1: Split the data into training, evaluation, and test datasets
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Lin_Reg.train_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Lin_Reg.Lin_reg2`
+WHERE
+  RAND() < 0.6; -- 60% of the data for training
+
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Lin_Reg.eval_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Lin_Reg.Lin_reg2`
+WHERE
+  RAND() >= 0.6 AND RAND() < 0.8; -- 20% of the data for evaluation
+
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Lin_Reg.test_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Lin_Reg.Lin_reg2`
+WHERE
+  RAND() >= 0.8; -- 20% of the data for testing
+
+-- Step 2: Create a linear regression model
+CREATE OR REPLACE MODEL `uk-pso-psoux-poc.Lin_Reg.linear_regression_model`
+OPTIONS(model_type='linear_reg') AS
+SELECT
+  `IS_Manager`,
+  `Approval`,
+  `Length_of_Service`,
+  `Time_in_Step`
+FROM
+  `uk-pso-psoux-poc.Lin_Reg.train_data`;
+
+-- Step 3: Evaluate the model on the evaluation dataset
+SELECT
+  *
+FROM
+  ML.EVALUATE(MODEL `uk-pso-psoux-poc.Lin_Reg.linear_regression_model`,
+    (
+    SELECT
+      `IS_Manager`,
+      `Approval`,
+      `Length_of_Service`,
+      `Time_in_Step`
+    FROM
+      `uk-pso-psoux-poc.Lin_Reg.eval_data`
+    )
+  );
+
+-- Step 4: Test the model on the test dataset
+SELECT
+  *
+FROM
+  ML.PREDICT(MODEL `uk-pso-psoux-poc.Lin_Reg.linear_regression_model`,
+    (
+    SELECT
+      `IS_Manager`,
+      `Approval`,
+      `Length_of_Service`,
+      `Time_in_Step`
+    FROM
+      `uk-pso-psoux-poc.Lin_Reg.test_data`
+    )
+  );
