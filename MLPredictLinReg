@@ -1,0 +1,14 @@
+SELECT
+  *,
+  predicted_Time_in_Step AS predicted_time
+FROM
+  ML.PREDICT(MODEL `uk-pso-psoux-poc.Lin_Reg.linear_regression_model`,
+    (
+    SELECT
+      `IS_Manager`,
+      `Approval`,
+      `Length_of_Service`
+    FROM
+      `your_project_id.your_dataset_id.New_Data`
+    )
+  );
