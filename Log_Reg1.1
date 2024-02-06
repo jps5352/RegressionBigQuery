@@ -1,0 +1,64 @@
+-- Step 1: Split the data into training, evaluation, and test datasets
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Log_Reg.train_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Log_Reg.Log_reg2`
+WHERE
+  RAND() < 0.6; -- 60% of the data for training
+
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Log_Reg.eval_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Log_Reg.Log_reg2`
+WHERE
+  RAND() >= 0.6 AND RAND() < 0.8; -- 20% of the data for evaluation
+
+CREATE OR REPLACE TABLE `uk-pso-psoux-poc.Log_Reg.test_data` AS
+SELECT
+  *
+FROM
+  `uk-pso-psoux-poc.Log_Reg.Log_reg2`
+WHERE
+  RAND() >= 0.8; -- 20% of the data for testing
+
+-- Step 2: Create a logistic regression model
+CREATE OR REPLACE MODEL `uk-pso-psoux-poc.Log_Reg.logistic_regression_model`
+OPTIONS(model_type='logistic_reg', input_label_cols=['Correction by Initiator']) AS
+SELECT
+  `Completed`,
+  `Length_of_Service`,
+  `Correction_by_Initiator`
+FROM
+  `uk-pso-psoux-poc.Log_Reg.train_data`;
+
+-- Step 3: Evaluate the model on the evaluation dataset
+SELECT
+  *
+FROM
+  ML.EVALUATE(MODEL `uk-pso-psoux-poc.Log_Reg.logistic_regression_model`,
+    (
+    SELECT
+      `Completed`,
+      `Length_of_Service`,
+      `Correction_by_Initiator`
+    FROM
+      `uk-pso-psoux-poc.Log_Reg.eval_data`
+    )
+  );
+
+-- Step 4: Test the model on the test dataset
+SELECT
+  *
+FROM
+  ML.PREDICT(MODEL `uk-pso-psoux-poc.Log_Reg.logistic_regression_model`,
+    (
+    SELECT
+      `Completed`,
+      `Length_of_Service`,
+      `Correction_by_Initiator`
+    FROM
+      `uk-pso-psoux-poc.Log_Reg.test_data`
+    )
+  );
